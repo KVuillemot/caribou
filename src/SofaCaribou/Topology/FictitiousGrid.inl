@@ -600,7 +600,7 @@ FictitiousGrid<DataTypes>::validate_grid() {
            << volume << "). This should not happen.";
         throw std::runtime_error(ss.str());
     }
-
+    
     msg_info() << "There are " << number_of_inside_regions << " inside regions";
     msg_info() << "There are " << number_of_outside_regions << " outside regions";
     msg_info() << "There are " << number_of_boundary_regions << " boundary regions";
@@ -611,7 +611,7 @@ FictitiousGrid<DataTypes>::validate_grid() {
                       << "or make sure that there are no holes in the surface mesh.";
     }
 
-
+    
 }
 
 template <typename DataTypes>
@@ -1035,6 +1035,145 @@ auto FictitiousGrid<DataTypes>::get_type_at(const WorldCoordinates & p) const ->
     } else {
         return Type::Outside;
     }
+}
+
+
+template <typename DataTypes>
+auto FictitiousGrid<DataTypes>::boundary_cells_indices() 
+    const -> std::tuple< std::vector<UNSIGNED_INTEGER_TYPE>,std::vector<UNSIGNED_INTEGER_TYPE>,std::vector<UNSIGNED_INTEGER_TYPE>> {   
+    const auto number_of_cells = p_grid->number_of_cells();
+    UNSIGNED_INTEGER_TYPE number_of_boundary_cells = 0,
+                          number_of_inside_cells = 0,
+                          number_of_outside_cells = 0;
+   
+    std::vector<UNSIGNED_INTEGER_TYPE> inside_cells_indices;
+    std::vector<UNSIGNED_INTEGER_TYPE> boundary_cells_indices;
+    std::vector<UNSIGNED_INTEGER_TYPE> outside_cells_indices;
+
+    for (UNSIGNED_INTEGER_TYPE index = 0; index < number_of_cells; ++index) {
+        if(p_cells_types[index] == Type::Inside) {
+            inside_cells_indices.push_back(index);
+        }
+        else if(p_cells_types[index] == Type::Boundary) {
+            boundary_cells_indices.push_back(index); 
+        }
+        else {
+            outside_cells_indices.push_back(index);
+        }
+    }
+    number_of_boundary_cells = boundary_cells_indices.size();
+    number_of_inside_cells = inside_cells_indices.size();
+    number_of_outside_cells = outside_cells_indices.size();
+
+    msg_info() << "There are " << number_of_boundary_cells  << " cells on the boundary";
+    msg_info() << "There are " << number_of_inside_cells    << " cells inside";
+    msg_info() << "There are " << number_of_outside_cells   << " cells outside";
+    
+    return {boundary_cells_indices, inside_cells_indices, outside_cells_indices};
+}
+
+// to get the indices of all the faces of one cell
+template <typename DataTypes>
+auto FictitiousGrid<DataTypes>::get_faces_on_cell(const CellIndex & cellIndex) 
+    const -> std::vector<UNSIGNED_INTEGER_TYPE>{   
+        
+    std::vector<UNSIGNED_INTEGER_TYPE> face_on_cell;
+    
+    if constexpr (Dimension == 2){
+        face_on_cell = p_grid->contained_edges(cellIndex);
+    }
+
+    if constexpr (Dimension == 3){
+        face_on_cell = p_grid->contained_faces(cellIndex);
+    }
+  
+    return face_on_cell;
+}
+
+// to get the faces on which ones we apply the ghost penalty
+template <typename DataTypes>
+auto FictitiousGrid<DataTypes>::get_boundary_faces() const -> std::vector<UNSIGNED_INTEGER_TYPE>{   
+
+    std::vector<UNSIGNED_INTEGER_TYPE> boundary_faces;
+
+    const auto cells = boundary_cells_indices();
+    const auto boundary = std::get<0>(cells);
+    const auto inside = std::get<1>(cells);
+    const auto outside = std::get<2>(cells);
+    
+    if constexpr (Dimension == 3 || Dimension == 2) {
+        for(UNSIGNED_INTEGER_TYPE cell_index = 0; cell_index < boundary.size(); cell_index++ ){
+            // build a vector with all the faces that are on boundary_cells 
+            const auto faces = get_faces_on_cell(cell_index);
+            boundary_faces.insert(boundary_faces.end(), faces.begin(), faces.end());
+        }
+
+        // delete the duplicate indices
+        std::sort(boundary_faces.begin(), boundary_faces.end());
+        auto last = std::unique(boundary_faces.begin(), boundary_faces.end());
+        boundary_faces.erase(last, boundary_faces.end());
+        
+        if constexpr (Dimension == 2){
+        msg_info() << "Number of edges on the grid " << p_grid -> number_of_edges(); 
+        msg_info() << "Number of edges on the boundary " << boundary_faces.size();
+        }
+
+        if constexpr (Dimension == 3 ){
+        msg_info() << "Number of faces on the grid " << p_grid -> number_of_faces(); 
+        msg_info() << "Number of faces on the boundary " << boundary_faces.size();
+        }
+
+        std::vector<UNSIGNED_INTEGER_TYPE> neighbors_indices;
+        std::vector<UNSIGNED_INTEGER_TYPE> outside_faces;
+
+        // delete the faces (or edges depending on the dimension) that are common to a boundary cell and an outside cell
+        for (UNSIGNED_INTEGER_TYPE cell_index = 0; cell_index < boundary.size(); cell_index++){
+            const auto neighbors = get_neighbors(&p_cells[cell_index]);  // get the neighobrs of all the boundary cells
+            
+            for (UNSIGNED_INTEGER_TYPE index = 0; index < neighbors.size(); index++){
+                neighbors_indices.push_back(neighbors[index]->index); // get indices of the neighbors
+            }
+
+            // get indices of the neighbors that are outside
+            for (UNSIGNED_INTEGER_TYPE index = 0; index < neighbors_indices.size(); index++){
+                if(p_cells_types[neighbors_indices[index]] == Type::Outside){
+                    const auto faces = get_faces_on_cell(neighbors_indices[index]);
+                    outside_faces.insert(outside_faces.end(), faces.begin(), faces.end());                
+                }
+            }
+            
+            for (UNSIGNED_INTEGER_TYPE index = 0; index < outside_faces.size(); index++ ){
+                if (std::find(boundary_faces.begin(), boundary_faces.end(), outside_faces[index]) != boundary_faces.end()){
+                    
+                    boundary_faces.erase(std::remove(boundary_faces.begin(), boundary_faces.end(), outside_faces[index]), boundary_faces.end());
+
+                }
+            }
+
+            neighbors_indices.clear();
+            outside_faces.clear();
+        }
+
+    }
+    
+    return boundary_faces;
+}
+
+template <typename DataTypes> 
+auto FictitiousGrid<DataTypes>::evaluate_level_set(const NodeIndex & nodeIndex) const -> float {
+        return (float) d_iso_surface->iso_value(p_grid->node(nodeIndex));
+    }
+
+template <typename DataTypes>
+auto FictitiousGrid<DataTypes>::evaluate_level_set_everywhere() const -> std::vector<float>{
+
+    const auto number_of_nodes = p_grid->number_of_nodes();
+
+    std::vector<float> values(number_of_nodes,0);
+    for (UNSIGNED_INTEGER_TYPE i = 0; i < number_of_nodes; ++i) {
+        values[i] = d_iso_surface->iso_value(p_grid->node(i));
+    }
+    return values;
 }
 
 template <typename DataTypes>

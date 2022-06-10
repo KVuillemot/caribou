@@ -250,6 +250,37 @@ public:
     inline std::map<FLOATING_POINT_TYPE, std::vector<CellIndex>>
     cell_volume_ratio_distribution(UNSIGNED_INTEGER_TYPE number_of_decimals=0) const;
 
+
+    /**
+     * @brief Divides the indices of cells in three categories depending on the type of cell. 
+     * 
+     * @return Three vectors with the indices of the boundary_cells, inside_cells and outside_cells 
+     */
+    inline std::tuple<std::vector<UNSIGNED_INTEGER_TYPE>,std::vector<UNSIGNED_INTEGER_TYPE>,std::vector<UNSIGNED_INTEGER_TYPE>> 
+    boundary_cells_indices() const;
+
+    /**
+     * @brief Get the faces on cell object
+     * 
+     * @param cellIndex 
+     * @return A vector with the indices of the faces
+     */
+
+    inline std::vector<UNSIGNED_INTEGER_TYPE> get_faces_on_cell(const CellIndex & cellIndex) const;
+    
+    /**
+     * @brief Get the faces (edges in dimension 2) that are on a boundary cell and not on an outside cell
+     * 
+     * @return A vector with the indices of such faces.
+     */
+    inline std::vector<UNSIGNED_INTEGER_TYPE> get_boundary_faces() const;
+    
+
+    // to change with Real instead of float (but don't know how cause it crashes)
+    inline float evaluate_level_set(const NodeIndex & nodeIndex) const;
+
+    inline std::vector<float> evaluate_level_set_everywhere() const;
+
     // ---------------------
     // SOFA METHOD OVERRIDES
     // ---------------------
@@ -335,7 +366,7 @@ private:
 
     ///< List of hexahedrons contained in the sparse grid (ex: [h1p1 h1p2 h1p3 h1p4 h1p5 ... hnp6 hnp7]).
     Data < sofa::type::vector<SofaHexahedron> > d_hexahedrons;
-
+     
     // ---------------
     // Private members
     // ---------------

@@ -4,6 +4,7 @@
 #include <memory>
 #include <cmath>
 #include <array>
+#include <algorithm>
 
 #include <Caribou/config.h>
 
@@ -185,6 +186,43 @@ struct Grid<2> : public internal::BaseMultidimensionalGrid<2, Grid<2>>
 
         return {n0, n1};
     }
+
+    /** Return all the edges of a cell */
+    [[nodiscard]] inline auto 
+    contained_edges(const CellIndex & index) const -> std::vector<UNSIGNED_INTEGER_TYPE>{
+        
+        std::vector<UNSIGNED_INTEGER_TYPE> edges(4, 0); // output vector 
+
+        // first : get nodes of the cell 
+        // then use the nodes to determine all the faces that have two nodes of the list
+        const auto & cell_nodes = node_indices_of(index); // get the nodes of the cell 
+        
+        int node_index_in_cell = 0; 
+
+        for (UNSIGNED_INTEGER_TYPE edge_index = 0; edge_index < number_of_edges(); ++edge_index ){ 
+            // check all the edges of the grid (maybe we can do better than this)
+            
+            // for each edge, we want to check if all the nodes are in cell_nodes
+            const auto & edge_nodes = edge(edge_index); // nodes of the edge
+            int nbr_common_nodes = 0;
+            for(UNSIGNED_INTEGER_TYPE node_edge_index = 0; node_edge_index < 2; ++node_edge_index){
+
+                for(UNSIGNED_INTEGER_TYPE node_cell_index=0; node_cell_index < 4; ++node_cell_index){
+                    // check the 4 nodes of the cell
+                    if (edge_nodes[node_edge_index] == cell_nodes[node_cell_index]){
+                        // if they are common 
+                        ++nbr_common_nodes;
+                    }
+                }
+            }
+            if (nbr_common_nodes == 2){ // if there are two common nodes, then the edge is in the cell
+                edges[node_index_in_cell] = edge_index; 
+                ++node_index_in_cell;
+            }
+        }
+        return edges;
+    }
+
 };
 
 template <>
@@ -431,6 +469,42 @@ struct Grid<3> : public internal::BaseMultidimensionalGrid<3, Grid<3>>
             }
         }
     }
+    
+    /** Return all the faces that are in a cell */
+    [[nodiscard]] inline auto 
+    contained_faces(const CellIndex & index) const -> std::vector<UNSIGNED_INTEGER_TYPE>{
+        
+        std::vector<UNSIGNED_INTEGER_TYPE> faces(6, 0); // output vector 
+        // first : get nodes of the cell 
+        // then use the nodes to determine all the faces that have two nodes of the list
+
+        const auto & cell_nodes = node_indices_of(index); // get the 8 nodes of the cell 
+        int i = 0;
+
+        for (UNSIGNED_INTEGER_TYPE face_index = 0; face_index < number_of_faces(); ++face_index ){ 
+            // check all the faces of the grid (maybe we can do better than this)
+            
+            const auto & face_nodes = face(face_index); // nodes of the face
+            int nbr_common_nodes = 0;
+            for(UNSIGNED_INTEGER_TYPE node_face_index = 0; node_face_index < 4; ++node_face_index){
+                // check all the nodes of the face 
+
+                for(UNSIGNED_INTEGER_TYPE node_cell_index=0; node_cell_index < 8; ++node_cell_index){
+                    // check all the nodes of the cell 
+                    
+                    if (face_nodes[node_face_index] == cell_nodes[node_cell_index]){
+                        ++nbr_common_nodes;
+                    }
+                }
+            }
+            if (nbr_common_nodes == 4){ // if there are 4 common nodes, then the face is on the cell 
+                faces[i] = face_index; 
+                ++i;
+            }
+        }
+        return faces;
+    }
+        
 };
 
 } // namespace caribou::topology

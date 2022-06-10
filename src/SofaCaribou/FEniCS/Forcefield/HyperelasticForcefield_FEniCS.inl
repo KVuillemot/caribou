@@ -172,6 +172,17 @@ void HyperelasticForcefield_FEniCS<Element>::addForce(
         Matrix<NumberOfNodesPerElement, Dimension> coefficients;
 
 
+        /** Here we should add the computation of phi-fem on each cell 
+        * For that, we need to check the type of each cell : if inside, outside or boundary 
+        * And then apply phi-FEM depending on that 
+        * If inside : apply phi-FEM with dx and no stab terms 
+        * If boundary, integral on the elemnt and stab terms :
+        * no problem for order 2 term (i think) because just a dx integral on the cell
+        * but there will be a problem for the first order term : 
+        * for the jump we need the value on the two cells and that is gonna be hard to compute i think
+        */
+
+
         for (std::size_t i = 0; i < NumberOfNodesPerElement; ++i) {
             current_nodes_position.row(i).noalias() = X0.row(node_indices[i]);
             coefficients.row(i).noalias() = u.row(node_indices[i]);
