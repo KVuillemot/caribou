@@ -280,6 +280,7 @@ public:
     inline float evaluate_level_set(const NodeIndex & nodeIndex) const;
 
     inline std::vector<float> evaluate_level_set_everywhere() const;
+    inline std::vector<float> evaluate_level_set_cell(const CellIndex & cellIndex) const ;
 
     // ---------------------
     // SOFA METHOD OVERRIDES

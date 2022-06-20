@@ -1164,6 +1164,18 @@ auto FictitiousGrid<DataTypes>::evaluate_level_set(const NodeIndex & nodeIndex) 
         return (float) d_iso_surface->iso_value(p_grid->node(nodeIndex));
     }
 
+
+template <typename DataTypes> 
+auto FictitiousGrid<DataTypes>::evaluate_level_set_cell(const CellIndex & cellIndex) const -> std::vector<float> {
+        auto cell_nodes = p_grid->node_indices_of(cellIndex);
+        std::vector<float> values(cell_nodes.size(),0);
+
+        for (UNSIGNED_INTEGER_TYPE i = 0; i< cell_nodes.size();i++){
+            values[i] = evaluate_level_set(cell_nodes[i]);
+        }
+        return values;
+    }
+
 template <typename DataTypes>
 auto FictitiousGrid<DataTypes>::evaluate_level_set_everywhere() const -> std::vector<float>{
 

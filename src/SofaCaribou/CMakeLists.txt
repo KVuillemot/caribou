@@ -27,6 +27,11 @@ set(HEADER_FILES
     Forcefield/HyperelasticForcefield[Tetrahedron].h
     Forcefield/HyperelasticForcefield[Tetrahedron10].h
     FEniCS/Forcefield/HyperelasticForcefield_FEniCS.h
+    FEniCS/Forcefield/Phi_FEM/HyperelasticForcefield_Phi_FEM.h
+    FEniCS/Forcefield/Phi_FEM/HyperelasticForcefield_Phi_FEM[Hexahedron_FEniCS].h
+    FEniCS/Forcefield/Phi_FEM/HyperelasticForcefield_Phi_FEM[Hexahedron_FEniCS20].h
+    FEniCS/Forcefield/Phi_FEM/HyperelasticForcefield_Phi_FEM[Tetrahedron].h
+    FEniCS/Forcefield/Phi_FEM/HyperelasticForcefield_Phi_FEM[Tetrahedron10].h
     FEniCS/Forcefield/HyperelasticForcefield_FEniCS[Hexahedron_FEniCS].h
     FEniCS/Forcefield/HyperelasticForcefield_FEniCS[Hexahedron_FEniCS20].h
     FEniCS/Forcefield/HyperelasticForcefield_FEniCS[Tetrahedron].h
@@ -103,6 +108,7 @@ set(HEADER_FILES
     Topology/FictitiousGrid.h
     Topology/IsoSurface.h
     Topology/SphereIsoSurface.h
+    Topology/LevelSet.h
     Visitor/AssembleGlobalMatrix.h
     Visitor/ConstrainGlobalMatrix.h
     Visitor/MultiVecEqualVisitor.h
@@ -112,6 +118,7 @@ set(TEMPLATE_FILES
     Forcefield/CaribouForcefield.inl
     Forcefield/HyperelasticForcefield.inl
     FEniCS/Forcefield/HyperelasticForcefield_FEniCS.inl
+    FEniCS/Forcefield/Phi_FEM/HyperelasticForcefield_Phi_FEM.inl
     Forcefield/TractionForcefield.inl
     Mapping/CaribouBarycentricMapping.inl
     Mass/CaribouMass.inl
@@ -141,6 +148,10 @@ set(SOURCE_FILES
     Forcefield/HyperelasticForcefield[Hexahedron20].cpp
     Forcefield/HyperelasticForcefield[Tetrahedron].cpp
     Forcefield/HyperelasticForcefield[Tetrahedron10].cpp
+    FEniCS/Forcefield/Phi_FEM/HyperelasticForcefield_Phi_FEM[Hexahedron_FEniCS].cpp
+    FEniCS/Forcefield/Phi_FEM/HyperelasticForcefield_Phi_FEM[Hexahedron_FEniCS20].cpp
+    FEniCS/Forcefield/Phi_FEM/HyperelasticForcefield_Phi_FEM[Tetrahedron].cpp
+    FEniCS/Forcefield/Phi_FEM/HyperelasticForcefield_Phi_FEM[Tetrahedron10].cpp
     FEniCS/Forcefield/HyperelasticForcefield_FEniCS[Hexahedron_FEniCS].cpp
     FEniCS/Forcefield/HyperelasticForcefield_FEniCS[Hexahedron_FEniCS20].cpp
     FEniCS/Forcefield/HyperelasticForcefield_FEniCS[Tetrahedron].cpp

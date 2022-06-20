@@ -1,5 +1,8 @@
-#include <SofaCaribou/FEniCS/Forcefield/HyperelasticForcefield_FEniCS[Hexahedron_FEniCS].h>
+#include <SofaCaribou/FEniCS/Forcefield/HyperelasticForcefield_FEniCS[Tetrahedron10].h>
 #include <SofaCaribou/FEniCS/Forcefield/HyperelasticForcefield_FEniCS.inl>
+
+#include <SofaCaribou/FEniCS/Forcefield/Phi_FEM/HyperelasticForcefield_Phi_FEM.inl>
+#include <SofaCaribou/FEniCS/Forcefield/Phi_FEM/HyperelasticForcefield_Phi_FEM[Tetrahedron10].h>
 
 
 DISABLE_ALL_WARNINGS_BEGIN
@@ -12,12 +15,12 @@ using namespace caribou;
 
 namespace SofaCaribou::forcefield {
 
-// --------------------------------
-// Hexahedron_FEniCS linear specialization
-// --------------------------------
+// ---------------------------------
+// Tetrahedron quadratic specialization
+// ---------------------------------
 
 // This will force the compiler to compile the following templated class
-template class HyperelasticForcefield_FEniCS<Hexahedron_FEniCS>;
+template class HyperelasticForcefield_Phi_FEM<Tetrahedron10>;
 
 } // namespace SofaCaribou::forcefield
 
@@ -26,5 +29,5 @@ using namespace SofaCaribou::forcefield;
 
 [[maybe_unused]]
 static int _c_ = RegisterObject("Caribou hyperelastic force field")
-    .add<HyperelasticForcefield_FEniCS<Hexahedron_FEniCS>>();
+    .add<HyperelasticForcefield_Phi_FEM<Tetrahedron10>>();
 }

@@ -25,6 +25,8 @@ auto create_fictitious_grid(py::module & m) {
     c.def("face_cell_indices", &FictitiousGrid<DataTypes>::get_faces_on_cell, py::arg("index_of_cell"));
     c.def("boundary_faces", &FictitiousGrid<DataTypes>::get_boundary_faces);
     c.def("phi", &FictitiousGrid<DataTypes>::evaluate_level_set, py::arg("node_index"));
+    c.def("phi_cell", &FictitiousGrid<DataTypes>::evaluate_level_set_cell, py::arg("node_index"));
+
     c.def("phi", &FictitiousGrid<DataTypes>::evaluate_level_set_everywhere);
     sofapython3::PythonFactory::registerType<FictitiousGrid<DataTypes>>([](sofa::core::objectmodel::Base* o) {
         return py::cast(dynamic_cast<FictitiousGrid<DataTypes>*>(o));
