@@ -1115,12 +1115,12 @@ auto FictitiousGrid<DataTypes>::get_boundary_faces() const -> std::vector<UNSIGN
         
         if constexpr (Dimension == 2){
         msg_info() << "Number of edges on the grid " << p_grid -> number_of_edges(); 
-        msg_info() << "Number of edges on the boundary " << boundary_faces.size();
+        msg_info() << "Number of edges on the boundary cells " << boundary_faces.size();
         }
 
         if constexpr (Dimension == 3 ){
         msg_info() << "Number of faces on the grid " << p_grid -> number_of_faces(); 
-        msg_info() << "Number of faces on the boundary " << boundary_faces.size();
+        msg_info() << "Number of faces on the boundary cells " << boundary_faces.size();
         }
 
         std::vector<UNSIGNED_INTEGER_TYPE> neighbors_indices;
@@ -1128,11 +1128,16 @@ auto FictitiousGrid<DataTypes>::get_boundary_faces() const -> std::vector<UNSIGN
 
         // delete the faces (or edges depending on the dimension) that are common to a boundary cell and an outside cell
         for (UNSIGNED_INTEGER_TYPE cell_index = 0; cell_index < boundary.size(); cell_index++){
-            const auto neighbors = get_neighbors(&p_cells[cell_index]);  // get the neighobrs of all the boundary cells
+            const auto neighbors = get_neighbors(&p_cells[cell_index]);  // get the neighbors of all the boundary cells
             
             for (UNSIGNED_INTEGER_TYPE index = 0; index < neighbors.size(); index++){
                 neighbors_indices.push_back(neighbors[index]->index); // get indices of the neighbors
             }
+
+            std::sort(neighbors_indices.begin(), neighbors_indices.end());
+            auto last_neighbors = std::unique(neighbors_indices.begin(), neighbors_indices.end());
+            neighbors_indices.erase(last_neighbors, neighbors_indices.end());
+
 
             // get indices of the neighbors that are outside
             for (UNSIGNED_INTEGER_TYPE index = 0; index < neighbors_indices.size(); index++){
@@ -1141,13 +1146,15 @@ auto FictitiousGrid<DataTypes>::get_boundary_faces() const -> std::vector<UNSIGN
                     outside_faces.insert(outside_faces.end(), faces.begin(), faces.end());                
                 }
             }
-            
-            for (UNSIGNED_INTEGER_TYPE index = 0; index < outside_faces.size(); index++ ){
-                if (std::find(boundary_faces.begin(), boundary_faces.end(), outside_faces[index]) != boundary_faces.end()){
-                    
-                    boundary_faces.erase(std::remove(boundary_faces.begin(), boundary_faces.end(), outside_faces[index]), boundary_faces.end());
 
-                }
+            std::sort(outside_faces.begin(), outside_faces.end());
+            auto last_outside_faces = std::unique(outside_faces.begin(), outside_faces.end());
+            outside_faces.erase(last_outside_faces, outside_faces.end());
+                        
+            for (UNSIGNED_INTEGER_TYPE index = 0; index < outside_faces.size(); index++ ){
+                boundary_faces.erase(std::remove(boundary_faces.begin(), 
+                                                 boundary_faces.end(), outside_faces[index]), boundary_faces.end());
+
             }
 
             neighbors_indices.clear();
